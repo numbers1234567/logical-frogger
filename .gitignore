@@ -1,3 +1,5 @@
 *.docx
 *.info
 *.exe
+*Test.cpp
+.vscode/*
