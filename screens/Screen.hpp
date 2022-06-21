@@ -2,6 +2,7 @@
 #define SCREEN
 
 #include <graphics/DynamicGraphics.hpp>
+#include <graphics/DynamicGraphicsTarget.hpp>
 #include <vector>
 
 class Screen : public DynamicGraphics {
@@ -11,11 +12,18 @@ class Screen : public DynamicGraphics {
         parent (typically of type sf::RenderWindow).
     */
     void setActive() {
-        std::vector<DynamicGraphics&> otherScreens = parent->getChildren();
+        std::vector<DynamicGraphics*> otherScreens = parent->getChildren();
         // Disable everything else to only display this screen.
-        for (auto i : otherScreens) i.setVisibility(false);
+        for (auto i : otherScreens) {
+            i->setVisibility(false);
+            isActive = false;
+        }
+        isActive = true;
         setVisibility(true);
     }
+
+    protected:
+    bool isActive;
 };
 
-#endif
+#endif // SCREEN
