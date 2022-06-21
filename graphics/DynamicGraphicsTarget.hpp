@@ -8,20 +8,20 @@
 class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
     public:
     DynamicGraphicsTarget(sf::VideoMode vm, const sf::String &title, int id) : sf::RenderWindow(vm, title) {
-        bboxEnabled=false;
         parent=nullptr;
-        setVisibility(true);
-        float offset[2];
-        float scale[2];
-        offset[0]=0;
-        offset[1]=0;
-        scale[0]=1;
-        scale[1]=1;
-        setOffset(offset);
-        setScale(scale);
+        setId(id);
+        finished = false;
     }
-    void updateThis(const sf::RenderWindow& target, float offset[], float scale[]) {
+    void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {
         clear(sf::Color::Black);
+    }
+
+    bool setFinished() { 
+        finished=true; 
+        close();
+    }
+    bool isFinished() { 
+        return finished; 
     }
 
     void updateWindow() {
@@ -45,7 +45,7 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         while (pollEvent(event)) {
             switch (event.type) {
             case sf::Event::Closed:
-                close();
+                setFinished();
             case sf::Event::Resized:
             default:
                 events.push(event);
@@ -63,5 +63,6 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         // I intend to set size and aspect ratio limitations so a user can't just break things.
     }
     std::queue<sf::Event> events;
+    bool finished;
 };
 #endif

@@ -26,28 +26,43 @@ Children objects are displayed in the order they were added.
 */
 class DynamicGraphics {
     public:
+    DynamicGraphics() {
+        setVisibility(true);
+        float offset[2] = {0,0};
+        float scale[2] = {1,1};
+        setOffset(offset);
+        setScale(scale);
+        bboxEnabled = false;
+    }
     /*
     Draw the given object using the given offset and scale value.
     For scale={1, 1} & offset={0,0}, the object should draw to the entire screen.
     Is called by update().
     */
-    virtual void updateThis(const sf::RenderWindow& target, float offset[], float scale[]) = 0;
+    virtual void updateThis(sf::RenderWindow& target, float offset[], float scale[]) = 0;
     /*
     update the given object and its children considering the parent offset and scale.
     */
-    void update(const sf::RenderWindow& target, float offset[], float scale[]) {
+    void update(sf::RenderWindow& target, float offset[], float scale[]) {
         if (!visible) return;
-        updateThis(target, offset, scale);
+        float relOffset[2];
+        float relScale[2];
+        getRelativeOffsets(relOffset, relScale);
+        float newOffset[2] = {
+            offset[0] + scale[0]*relOffset[0],
+            offset[1] + scale[1]*relOffset[1]
+        };
+        float newScale[2] = {
+            scale[0] * relScale[0],
+            scale[1] * relScale[1]
+        };
 
-        float newOffset[2];
-        float newScale[2];
-        newOffset[0] = offset[0] + scale[0] * this->offset[0];
-        newOffset[1] = offset[1] + scale[1] * this->offset[1];
-        newScale[0] = scale[0] * this->scale[0];
-        newScale[1] = scale[1] * this->scale[1];
+        updateThis(target, newOffset, newScale);
+
         std::vector<DynamicGraphics*> children = getChildren();
         for (auto child : children) 
             child->update(target, newOffset, newScale);
+        
 
         if (bboxEnabled) showBBox(target, newOffset, scale);
     }
@@ -109,10 +124,11 @@ class DynamicGraphics {
     }
 
     /*
-    Add child. Does not automatically set child.parent.
+    Add child. Automaticcaly sets the child->parent
     */
     void addChild(DynamicGraphics* child) { 
         children.push_back(child); 
+        child->parent=this;
     }
 
     std::vector<DynamicGraphics*> getChildren(int id) {
