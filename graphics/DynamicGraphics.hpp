@@ -3,19 +3,13 @@
 
 #include <list>
 #include <vector>
+#include <queue>
 #include <SFML/Window.hpp>
 #include <SFML/Graphics.hpp>
 #include <SFML/System.hpp>
 
-/*
-A special DynamicGraphics object which contains an interface
-    to the window.
-It's an sf::RenderWindow, so it has all the capabilities
-    for handling window manipulation, events, and 2D drawing.
-Contains all DynamicGraphics objects and will update all graphics
-    whenever its update() is called.
-*/
-class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {};
+#include <iostream>
+
 
 /*
 An interface for drawing different types of things onto the screen.
@@ -37,11 +31,11 @@ class DynamicGraphics {
     For scale={1, 1} & offset={0,0}, the object should draw to the entire screen.
     Is called by update().
     */
-    virtual void updateThis(const DynamicGraphicsTarget& target, float offset[], float scale[]) = 0;
+    virtual void updateThis(const sf::RenderWindow& target, float offset[], float scale[]) = 0;
     /*
     update the given object and its children considering the parent offset and scale.
     */
-    void update(const DynamicGraphicsTarget& target, float offset[], float scale[]) {
+    void update(const sf::RenderWindow& target, float offset[], float scale[]) {
         if (!visible) return;
         updateThis(target, offset, scale);
 
@@ -51,9 +45,9 @@ class DynamicGraphics {
         newOffset[1] = offset[1] + scale[1] * this->offset[1];
         newScale[0] = scale[0] * this->scale[0];
         newScale[1] = scale[1] * this->scale[1];
-
+        std::vector<DynamicGraphics*> children = getChildren();
         for (auto child : children) 
-            child.update(target, newOffset, newScale);
+            child->update(target, newOffset, newScale);
 
         if (bboxEnabled) showBBox(target, newOffset, scale);
     }
@@ -94,13 +88,21 @@ class DynamicGraphics {
             targetScale[1] = thisScale[1]*relScale[1];
         }
     }
+    void setOffset(float offset[2]) {
+        this->offset[0]=offset[0];
+        this->offset[1]=offset[1];
+    }
+    void setScale(float scale[2]) {
+        this->scale[0]=scale[0];
+        this->scale[1]=scale[1];
+    }
     
     /*
     Remove all children with the given id.
     */
     int removeChildren(int id) {
-        for (std::list<DynamicGraphics&>::iterator it=children.begin();it!=children.end();) {
-            if ((*it).getId()==id) 
+        for (std::list<DynamicGraphics*>::iterator it=children.begin();it!=children.end();) {
+            if ((*it)->getId()==id) 
                 it = children.erase(it);
             else ++it;
         }
@@ -109,22 +111,22 @@ class DynamicGraphics {
     /*
     Add child. Does not automatically set child.parent.
     */
-    void addChild(DynamicGraphics& child) { 
+    void addChild(DynamicGraphics* child) { 
         children.push_back(child); 
     }
 
-    std::vector<DynamicGraphics&> getChildren(int id) {
-        std::vector<DynamicGraphics&> out;
-        for (std::list<DynamicGraphics&>::iterator it=children.begin();it!=children.end();++it) {
-            if ((*it).getId()==id) 
+    std::vector<DynamicGraphics*> getChildren(int id) {
+        std::vector<DynamicGraphics*> out;
+        for (std::list<DynamicGraphics*>::iterator it=children.begin();it!=children.end();++it) {
+            if ((*it)->getId()==id) 
                 out.push_back(*it);
         }
         return out;
     }
 
-    std::vector<DynamicGraphics&> getChildren() {
-        std::vector<DynamicGraphics&> out;
-        for (std::list<DynamicGraphics&>::iterator it=children.begin();it!=children.end();++it) {
+    std::vector<DynamicGraphics*> getChildren() {
+        std::vector<DynamicGraphics*> out;
+        for (std::list<DynamicGraphics*>::iterator it=children.begin();it!=children.end();++it) {
             out.push_back(*it);
         }
         return out;
@@ -141,12 +143,12 @@ class DynamicGraphics {
     private:
     bool visible;
     // Display bounding box as a rectangle
-    void showBBox(const DynamicGraphicsTarget& target, float offset[], float scale[]) {
+    void showBBox(const sf::RenderWindow& target, float offset[], float scale[]) {
 
     }
 
     int id;
-    std::list<DynamicGraphics&> children;
+    std::list<DynamicGraphics*> children;
     float offset[2];
     float scale[2];
 };
