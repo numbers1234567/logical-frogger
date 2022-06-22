@@ -25,6 +25,7 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
     }
 
     void updateWindow() {
+        pollAllEvents();
         float offset[2];
         float scale[2];
         getGlobalOffsets(offset, scale);
@@ -40,7 +41,7 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
     */
     void pollAllEvents() {
         sf::Event event;
-        std::queue<sf::Event> empty;
+        std::vector<sf::Event> empty;
         std::swap(events, empty);
         while (pollEvent(event)) {
             switch (event.type) {
@@ -48,13 +49,11 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
                 setFinished();
             case sf::Event::Resized:
             default:
-                events.push(event);
+                events.push_back(event);
                 break;
             }
         }
     }
-
-    std::queue<sf::Event> getEvents() { return events; }
 
     protected:
     void onCreate() {
@@ -62,7 +61,6 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
     void onResize() {
         // I intend to set size and aspect ratio limitations so a user can't just break things.
     }
-    std::queue<sf::Event> events;
     bool finished;
 };
 #endif

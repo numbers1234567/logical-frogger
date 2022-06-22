@@ -37,14 +37,20 @@ class DynamicGraphics {
     /*
     Draw the given object using the given offset and scale value.
     For scale={1, 1} & offset={0,0}, the object should draw to the entire screen.
-    Is called by update().
+    Is called on each frame.
     */
-    virtual void updateThis(sf::RenderWindow& target, float offset[], float scale[]) = 0;
+    virtual void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {};
+    /*
+    Handle events given from getEvents(). 
+    Is automatically called in each frame prior to drawing.
+    */
+    virtual void handleEvents(sf::RenderWindow& target) {};
     /*
     update the given object and its children considering the parent offset and scale.
     */
     void update(sf::RenderWindow& target, float offset[], float scale[]) {
-        if (!visible) return;
+        handleEvents(target);
+
         float relOffset[2];
         float relScale[2];
         getRelativeOffsets(relOffset, relScale);
@@ -62,7 +68,6 @@ class DynamicGraphics {
         std::vector<DynamicGraphics*> children = getChildren();
         for (auto child : children) 
             child->update(target, newOffset, newScale);
-        
 
         if (bboxEnabled) showBBox(target, newOffset, scale);
     }
@@ -151,15 +156,20 @@ class DynamicGraphics {
     // Bounding box
     bool toggleBBox() { return (bboxEnabled=!bboxEnabled); }
     
+    const std::vector<sf::Event>& getEvents() {
+        return events;
+    }
+
     protected:
     bool bboxEnabled;
     DynamicGraphics* parent;
     
+    static std::vector<sf::Event> events;
 
     private:
     bool visible;
     // Display bounding box as a rectangle
-    void showBBox(const sf::RenderWindow& target, float offset[], float scale[]) {
+    void showBBox(sf::RenderWindow& target, float offset[], float scale[]) {
 
     }
 
@@ -168,5 +178,7 @@ class DynamicGraphics {
     float offset[2];
     float scale[2];
 };
+
+std::vector<sf::Event> DynamicGraphics::events;
 
 #endif // DYNAMIC_GRAPHICS
