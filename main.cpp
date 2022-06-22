@@ -9,7 +9,6 @@ int mainloop() {
     StartScreen screen(window, 1);
     screen.setActive();
     while (!window->isFinished()) {
-        window->pollAllEvents();
         window->updateWindow();
     }
 

@@ -22,8 +22,16 @@ class Screen : public DynamicGraphics {
         setVisibility(true);
     }
 
+    void navBack() {
+        prevScreen->setActive();
+    }
+    
+    Screen* prevScreen; // Possible previous screen
+
     protected:
     bool isActive;
+
+    private:
 };
 
 #endif // SCREEN
