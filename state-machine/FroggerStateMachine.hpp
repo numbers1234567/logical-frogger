@@ -31,7 +31,7 @@ class FroggerState {
     Returns a -1 if it is not possible to reach this state from "from" 
         using an incremental update.
     */
-    float getTimePassed(FroggerState& from) const {
+    float getTimePassed(const FroggerState& from) const {
         // t=(k+r-r0)/v, where 0<=t<1 and k is an integer
         int kStart = -std::floor(getPositionAt(0)-from.getPositionAt(0));
         int kEnd = std::ceil(getVelocityAt(0) - getPositionAt(0) + from.getPositionAt(0));
@@ -76,6 +76,14 @@ class FroggerState {
         if (lose) return -1;
         return std::min(downTime, upTime);
     }
+
+    bool isEqual(const FroggerState& other) const {
+        for (int i=0;i<getNumLevels();i++) {
+            if (std::abs(other.getPositionAt(i)-getPositionAt(i)) >= rounding_error) return false;
+            if (getVelocityAt(i) != getVelocityAt(i)) return false;
+        }
+        return true;
+    }
     private:
     // Next time levels l1 and l2 coincide
     float nextCollision(int l1, int l2) const {
@@ -90,7 +98,7 @@ class FroggerState {
         return (oPos-pPos+k)/(pVel-oVel);
     }
 
-    bool getTimePassedAux(FroggerState& from, float t) const {
+    bool getTimePassedAux(const FroggerState& from, float t) const {
         // Compare approximate positions after time t passes, then compare to actual.
         for (int i=0;i<getNumLevels();i++) {
             float approxPos = from.getPositionAt(i) + t*from.getVelocityAt(i);
