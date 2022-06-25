@@ -50,7 +50,7 @@ class DynamicGraphics {
     */
     void update(sf::RenderWindow& target, float offset[], float scale[]) {
         handleEvents(target);
-
+        if (!isVisible()) return;
         float relOffset[2];
         float relScale[2];
         getRelativeOffsets(relOffset, relScale);
@@ -79,6 +79,7 @@ class DynamicGraphics {
     void setId(int id) { this->id=id; }
     int getNumChildren() { return children.size(); }
     void setVisibility(bool visible) { this->visible=visible; }
+    bool isVisible() { return visible; }
     /*
     Fills up the targetOffset and targetScale arrays with
         the offset and scale relative to the parent offsets.
