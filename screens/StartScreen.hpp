@@ -5,16 +5,17 @@
 #include <graphics/DynamicText.hpp>
 #include <graphics/DynamicButton.hpp>
 #include <screens/Screen.hpp>
+#include <screens/ScreenTypes.hpp>
 #include <iostream>
 
 class StartScreenButton : public DynamicButton {
     public:
-    StartScreenButton(Screen* startScreen, Screen *toScreen, int id=0) {
-        this->startScreen = startScreen;
-        this->toScreen = toScreen;
+    StartScreenButton(Screen *startScreen, int toScreen, int id=0) {
         setVisibility(true);
+        toScreenId=toScreen;
 
         startScreen->addChild(this);
+        this->startScreen=startScreen;
         setId(id);
     }
     bool pointCollides(float x, float y) {
@@ -25,8 +26,7 @@ class StartScreenButton : public DynamicButton {
                (y >= offset[1] && y <= offset[1] + scale[1]);
     }
     void openOtherScreen() {
-        toScreen->setActive();
-        toScreen->prevScreen = startScreen;
+        startScreen->getScreens(toScreenId)[0]->setActive(startScreen);
     }
     void updateThis(sf::RenderWindow& target, float offset[2], float scale[2]) {
         int windowX=target.getSize().x;
@@ -38,23 +38,25 @@ class StartScreenButton : public DynamicButton {
         target.draw(toDraw);
     }
     void onHover(float x, float y) {
-        std::cout << x << " " << y << std::endl;
     }
+    void onClick(float x, float y) {
+        openOtherScreen();
+    }
+
     protected:
+    int toScreenId;
     Screen* startScreen;
-    Screen* toScreen;
 };
 
 class StartScreen : public Screen {
     public:
-    StartScreen(DynamicGraphicsTarget* parent, int id=0) {
+    StartScreen(DynamicGraphics* parent, int id=ScreenType::start) {
         parent->addChild(this);
         setId(id);
 
         initTitle();
         initButtons();
         setVisibility(true);
-
     }
 
     ~StartScreen() {
@@ -71,7 +73,7 @@ class StartScreen : public Screen {
     }
 
     void initButtons() {
-        start = new StartScreenButton(this, nullptr, startButtonID);
+        start = new StartScreenButton(this, ScreenType::gameOptions, startButtonID);
         float offset[2] = {0.2, 0.4};
         float scale[2] = {0.2, 0.075};
         start->setOffset(offset);
