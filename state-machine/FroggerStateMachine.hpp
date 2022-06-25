@@ -19,10 +19,10 @@ class FroggerState {
     /*
     Basic getters
     */
-    virtual int getVelocityAt(int level) = 0; // m/s
-    virtual float getPositionAt(int level) = 0; // m
-    virtual int getPlayerLevel() = 0;
-    virtual int getNumLevels() = 0;
+    virtual int getVelocityAt(int level) const = 0; // m/s
+    virtual float getPositionAt(int level) const = 0; // m
+    virtual int getPlayerLevel() const = 0;
+    virtual int getNumLevels() const = 0;
     virtual ~FroggerState() {};
     /*
     Calculate the time passed between this state and the from state.
@@ -31,7 +31,7 @@ class FroggerState {
     Returns a -1 if it is not possible to reach this state from "from" 
         using an incremental update.
     */
-    float getTimePassed(FroggerState& from) {
+    float getTimePassed(FroggerState& from) const {
         // t=(k+r-r0)/v, where 0<=t<1 and k is an integer
         int kStart = -std::floor(getPositionAt(0)-from.getPositionAt(0));
         int kEnd = std::ceil(getVelocityAt(0) - getPositionAt(0) + from.getPositionAt(0));
@@ -52,7 +52,7 @@ class FroggerState {
     Returns a -1 if the player will inevitably lose from this point.
     Returns 0 if the player is currently in a collision.
     */
-    float nextInterestingState() {
+    float nextInterestingState() const {
         float downTime=std::numeric_limits<float>::max();
         float upTime=std::numeric_limits<float>::max();
         bool lose=true;
@@ -78,7 +78,7 @@ class FroggerState {
     }
     private:
     // Next time levels l1 and l2 coincide
-    float nextCollision(int l1, int l2) {
+    float nextCollision(int l1, int l2) const {
         // pPos + pVel*t == oPos + oVel*t (mod 1)
         // t(pVel-oVel) == oPos-pPos + k
         float pPos = getPositionAt(l1);
@@ -90,7 +90,7 @@ class FroggerState {
         return (oPos-pPos+k)/(pVel-oVel);
     }
 
-    bool getTimePassedAux(FroggerState& from, float t) {
+    bool getTimePassedAux(FroggerState& from, float t) const {
         // Compare approximate positions after time t passes, then compare to actual.
         for (int i=0;i<getNumLevels();i++) {
             float approxPos = from.getPositionAt(i) + t*from.getVelocityAt(i);
@@ -110,7 +110,7 @@ Allows for the update:
 */
 class FroggerFullState : public FroggerState {
     public:
-
+    FroggerFullState() {}
     /*Construct state directly using the obviously-required data*/
     FroggerFullState(std::vector<int> velocities, std::vector<float> positions, int playerLevel) {
         this->velocities = velocities;
@@ -133,16 +133,16 @@ class FroggerFullState : public FroggerState {
 
     ~FroggerFullState() = default;
 
-    int getVelocityAt(int level) {
+    int getVelocityAt(int level) const {
         return velocities[level];
     }
-    float getPositionAt(int level) {
+    float getPositionAt(int level) const {
         return positions[level] - std::floor(positions[level]);
     }
-    int getPlayerLevel() {
+    int getPlayerLevel() const {
         return playerLevel;
     }
-    int getNumLevels() {
+    int getNumLevels() const {
         return numLevels;
     }
 
@@ -192,21 +192,21 @@ class FroggerPartialState : public FroggerState {
 
     ~FroggerPartialState(){}
 
-    FroggerState& getInitialState() {
+    const FroggerState& getInitialState() const {
         return initialState;
     }
     
-    int getVelocityAt(int level) {
+    int getVelocityAt(int level) const {
         return initialState.getVelocityAt(level);
     }
-    int getPlayerLevel() {
+    int getPlayerLevel() const {
         return playerLevel;
     }
-    float getPositionAt(int level) {
-        float answer=getInitialState().getPositionAt(level)+initialState.getVelocityAt(level)*timePassed;
+    float getPositionAt(int level) const {
+        float answer=getInitialState().getPositionAt(level)+getInitialState().getVelocityAt(level)*timePassed;
         return answer - std::floor(answer);
     }
-    int getNumLevels() {
+    int getNumLevels() const {
         return getInitialState().getNumLevels();
     }
     void incrementalUpdate(float timestep) {
