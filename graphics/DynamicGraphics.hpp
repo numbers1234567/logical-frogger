@@ -39,7 +39,7 @@ class DynamicGraphics {
     For scale={1, 1} & offset={0,0}, the object should draw to the entire screen.
     Is called on each frame.
     */
-    virtual void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {};
+    virtual void updateThis(sf::RenderWindow& target, float offset[], float scale[], float dt) {};
     /*
     Handle events given from getEvents(). 
     Is automatically called in each frame prior to drawing.
@@ -48,7 +48,7 @@ class DynamicGraphics {
     /*
     update the given object and its children considering the parent offset and scale.
     */
-    void update(sf::RenderWindow& target, float offset[], float scale[]) {
+    void update(sf::RenderWindow& target, float offset[], float scale[], float dt) {
         handleEvents(target);
         if (!isVisible()) return;
         float relOffset[2];
@@ -63,11 +63,11 @@ class DynamicGraphics {
             scale[1] * relScale[1]
         };
 
-        updateThis(target, newOffset, newScale);
+        updateThis(target, newOffset, newScale, dt);
 
         std::vector<DynamicGraphics*> children = getChildren();
         for (auto child : children) 
-            child->update(target, newOffset, newScale);
+            child->update(target, newOffset, newScale, dt);
 
         if (bboxEnabled) showBBox(target, newOffset, scale);
     }

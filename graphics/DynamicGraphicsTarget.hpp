@@ -12,7 +12,7 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         setId(id);
         finished = false;
     }
-    void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {
+    void updateThis(sf::RenderWindow& target, float offset[], float scale[], float dt) {
         clear(sf::Color::Black);
     }
 
@@ -24,13 +24,13 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         return finished; 
     }
 
-    void updateWindow() {
+    void updateWindow(float dt) {
         pollAllEvents();
         float offset[2];
         float scale[2];
         getGlobalOffsets(offset, scale);
         
-        this->update(*this, offset, scale);
+        this->update(*this, offset, scale, dt);
 
         display();
     }

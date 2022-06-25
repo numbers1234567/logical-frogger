@@ -35,7 +35,7 @@ class GameOptionsScreen : public Screen {
         delete gameState;
     }
 
-    void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {
+    void updateThis(sf::RenderWindow& target, float offset[], float scale[], float dt) {
         sf::RectangleShape rect(sf::Vector2f(200, 200));
         rect.setFillColor(sf::Color(200, 200, 200));
         target.draw(rect);

@@ -25,7 +25,7 @@ class DynamicText : public DynamicGraphics, public sf::Text {
         setFillColor(fillColor);
         setStyle(textStyle);
     }
-    void updateThis(sf::RenderWindow& target, float offset[], float scale[]) {
+    void updateThis(sf::RenderWindow& target, float offset[], float scale[], float dt) {
         sf::Vector2f position(offset[0]*target.getSize().x, offset[1]*target.getSize().y);
         
         setPosition(position);

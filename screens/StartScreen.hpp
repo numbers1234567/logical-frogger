@@ -28,7 +28,7 @@ class StartScreenButton : public DynamicButton {
     void openOtherScreen() {
         startScreen->getScreens(toScreenId)[0]->setActive(startScreen);
     }
-    void updateThis(sf::RenderWindow& target, float offset[2], float scale[2]) {
+    void updateThis(sf::RenderWindow& target, float offset[2], float scale[2], float dt) {
         int windowX=target.getSize().x;
         int windowY=target.getSize().y;
         sf::RectangleShape toDraw = sf::RectangleShape(sf::Vector2f(scale[0]*windowX, scale[1]*windowY));
