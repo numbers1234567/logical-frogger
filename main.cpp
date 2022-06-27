@@ -7,13 +7,13 @@
 #include <screens/StartScreen.hpp>
 #include <iostream>
 
-struct FullGameContainer
+struct FullDataContainer
 {
     DynamicGraphicsTarget& window;
     StartScreen& startScreen;
     GameOptionsScreen& gameOptionsScreen;
     GameScreen& gameScreen;
-    FullGameContainer(DynamicGraphicsTarget& window,
+    FullDataContainer(DynamicGraphicsTarget& window,
                       StartScreen& startScreen,
                       GameOptionsScreen& gameOptionsScreen,
                       GameScreen& gameScreen) 
@@ -21,24 +21,29 @@ struct FullGameContainer
                       gameOptionsScreen(gameOptionsScreen), gameScreen(gameScreen) {}
 };
 
+int loop(FullDataContainer gameContainer) {
+    gameContainer.window.updateWindow();
+    return 0;
+}
 
 int mainloop() {
-    
     DynamicGraphicsTarget window(sf::VideoMode(1024, 1024), "bruh", 0);
     StartScreen startScreen(&window);
     GameOptionsScreen gameOptions(&window);
     GameScreen gameScreen(&window);
 
-    FullGameContainer gameContainer(window, startScreen, gameOptions, gameScreen);
+    FullDataContainer gameContainer(window, startScreen, gameOptions, gameScreen);
 
     gameContainer.startScreen.setActive(nullptr);
 
     while (!gameContainer.window.isFinished()) {
-        gameContainer.window.updateWindow();
+        int ret = loop(gameContainer);
+        if (ret!=0) return ret;
     }
 
     return 0;
 }
+
 
 bool initResources() {
     bool success=true;
@@ -49,6 +54,5 @@ bool initResources() {
 int main(int argc, char const *argv[])
 {
     initResources();
-    mainloop();
-    return 0;
+    return mainloop();
 }
