@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <stdexcept>
 #include <cmath>
 #include <limits>
 #include <iostream>
@@ -19,10 +20,18 @@ class FroggerState {
     /*
     Basic getters
     */
-    virtual int getVelocityAt(int level) const = 0; // m/s
-    virtual float getPositionAt(int level) const = 0; // m
-    virtual int getPlayerLevel() const = 0;
-    virtual int getNumLevels() const = 0;
+    virtual int getVelocityAt(int level) const {
+        std::runtime_error("FroggerState::getVelocityAt() is not overridden.");
+    } // m/s
+    virtual float getPositionAt(int level) const {
+        std::runtime_error("FroggerState::getPositionAt() is not overriddent");
+    } // m
+    virtual int getPlayerLevel() const {
+        std::runtime_error("FroggerState::getPlayerLevel() is not overriddent");
+    }
+    virtual int getNumLevels() const {
+        std::runtime_error("FroggerState::getNumLevels() is not overriddent");
+    }
     virtual ~FroggerState() {};
     /*
     Calculate the time passed between this state and the from state.
@@ -45,8 +54,12 @@ class FroggerState {
     Updates positions for each level. For each level, it's updated as
         position := position + timestep*velocity
     */
-    virtual void incrementalUpdate(float timestep) = 0;
-    virtual bool movePlayer(int to) = 0;
+    virtual void incrementalUpdate(float timestep) {
+        std::runtime_error("FroggerState::incrementalUpdate() is not overridden");
+    }
+    virtual bool movePlayer(int to) {
+        std::runtime_error("FroggerState::movePlayer() is not overridden");
+    }
     /*
     Returns the amount of time in seconds before the player is allowed to move, or change levels.
     Returns a -1 if the player will inevitably lose from this point.
