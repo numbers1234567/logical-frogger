@@ -24,13 +24,14 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         return finished; 
     }
 
-    void updateWindow(float dt) {
+    void updateWindow() {
+        sf::Time elapsed=clock.restart();
         pollAllEvents();
         float offset[2];
         float scale[2];
         getGlobalOffsets(offset, scale);
         
-        this->update(*this, offset, scale, dt);
+        this->update(*this, offset, scale, elapsed.asSeconds());
 
         display();
     }
@@ -62,5 +63,6 @@ class DynamicGraphicsTarget : public DynamicGraphics, public sf::RenderWindow {
         // I intend to set size and aspect ratio limitations so a user can't just break things.
     }
     bool finished;
+    sf::Clock clock;
 };
 #endif
