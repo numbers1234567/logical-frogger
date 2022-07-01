@@ -2,13 +2,6 @@
 #define FROGGER_STATE_MACHINE
 
 #include <vector>
-#include <unordered_set>
-#include <stdexcept>
-#include <cmath>
-#include <limits>
-#include <iostream>
-
-const float rounding_error=0.000001;
 
 /*
 "Abstract class" with getters on the full data needed to define a frogger game.
@@ -20,19 +13,11 @@ class FroggerState {
     /*
     Basic getters
     */
-    virtual int getVelocityAt(int level) const {
-        std::runtime_error("FroggerState::getVelocityAt() is not overridden.");
-    } // m/s
-    virtual float getPositionAt(int level) const {
-        std::runtime_error("FroggerState::getPositionAt() is not overriddent");
-    } // m
-    virtual int getPlayerLevel() const {
-        std::runtime_error("FroggerState::getPlayerLevel() is not overriddent");
-    }
-    virtual int getNumLevels() const {
-        std::runtime_error("FroggerState::getNumLevels() is not overriddent");
-    }
-    virtual ~FroggerState() {};
+    virtual int getVelocityAt(int level) const; // m/s
+    virtual float getPositionAt(int level) const; // m
+    virtual int getPlayerLevel() const;
+    virtual int getNumLevels() const;
+    virtual ~FroggerState();
     /*
     Calculate the time passed between this state and the from state.
     This is useful since the amount of time passed is an important
@@ -40,86 +25,26 @@ class FroggerState {
     Returns a -1 if it is not possible to reach this state from "from" 
         using an incremental update.
     */
-    float getTimePassed(const FroggerState& from) const {
-        // t=(k+r-r0)/v, where 0<=t<1 and k is an integer
-        int kStart = -std::floor(getPositionAt(0)-from.getPositionAt(0));
-        int kEnd = std::ceil(getVelocityAt(0) - getPositionAt(0) + from.getPositionAt(0));
-        for (int k=kStart;k<=kEnd;k++) {
-            float t=(k+getPositionAt(0)-from.getPositionAt(0))/getVelocityAt(0);
-            if (getTimePassedAux(from, t)) return t;
-        }
-        return -1;
-    }
+    float getTimePassed(const FroggerState& from) const;
     /*
     Updates positions for each level. For each level, it's updated as
         position := position + timestep*velocity
     */
-    virtual void incrementalUpdate(float timestep) {
-        std::runtime_error("FroggerState::incrementalUpdate() is not overridden");
-    }
-    virtual bool movePlayer(int to) {
-        std::runtime_error("FroggerState::movePlayer() is not overridden");
-    }
+    virtual void incrementalUpdate(float timestep);
+    virtual bool movePlayer(int to);
     /*
     Returns the amount of time in seconds before the player is allowed to move, or change levels.
     Returns a -1 if the player will inevitably lose from this point.
     Returns 0 if the player is currently in a collision.
     */
-    float nextInterestingState() const {
-        float downTime=std::numeric_limits<float>::max();
-        float upTime=std::numeric_limits<float>::max();
-        bool lose=true;
-        int playerLevel = getPlayerLevel();
-        if (playerLevel > 0) {
-            float nextTime = nextCollision(playerLevel, playerLevel-1);
-            float nextPosition = getPositionAt(playerLevel) + getVelocityAt(playerLevel)*nextTime;
-            if (std::abs(nextPosition-0.5) <= 0.5) {
-                downTime = nextTime;
-                lose=false;
-            }
-        }
-        if (playerLevel < getNumLevels()-1) {
-            float nextTime = nextCollision(playerLevel, playerLevel+1);
-            float nextPosition = getPositionAt(playerLevel) + getVelocityAt(playerLevel)*nextTime;
-            if (std::abs(nextPosition-0.5) <= 0.5) {
-                upTime = nextTime;
-                lose=false;
-            }
-        }
-        if (lose) return -1;
-        return std::min(downTime, upTime);
-    }
+    float nextInterestingState() const;
 
-    bool isEqual(const FroggerState& other) const {
-        for (int i=0;i<getNumLevels();i++) {
-            if (std::abs(other.getPositionAt(i)-getPositionAt(i)) >= rounding_error) return false;
-            if (getVelocityAt(i) != getVelocityAt(i)) return false;
-        }
-        return true;
-    }
+    bool isEqual(const FroggerState& other) const;
     private:
     // Next time levels l1 and l2 coincide
-    float nextCollision(int l1, int l2) const {
-        // pPos + pVel*t == oPos + oVel*t (mod 1)
-        // t(pVel-oVel) == oPos-pPos + k
-        float pPos = getPositionAt(l1);
-        float oPos = getPositionAt(l2);
-        int pVel = getVelocityAt(l1);
-        int oVel = getVelocityAt(l2);
-        int k=-std::floor(oPos-pPos);
-        if (pVel < oVel) k=-std::ceil(oPos-pPos);
-        return (oPos-pPos+k)/(pVel-oVel);
-    }
+    float nextCollision(int l1, int l2) const;
 
-    bool getTimePassedAux(const FroggerState& from, float t) const {
-        // Compare approximate positions after time t passes, then compare to actual.
-        for (int i=0;i<getNumLevels();i++) {
-            float approxPos = from.getPositionAt(i) + t*from.getVelocityAt(i);
-            approxPos -= std::floor(approxPos);
-            if (std::abs(approxPos-getPositionAt(i)) > rounding_error) return false;
-        }
-        return true;
-    }
+    bool getTimePassedAux(const FroggerState& from, float t) const;
 };
 
 /*
@@ -127,58 +52,27 @@ Contains the full data on a game state in a single class.
 Contains full velocity, position, and player position data
     as well as convenient conversions to smaller representations.
 Allows for the update:
- * incremental update - given the timestep, modifies the positions by position+=velocity*timestep.
+ *
+ * imestep, modifies the positions by position+=velocity*timestep.
 */
 class FroggerFullState : public FroggerState {
     public:
-    FroggerFullState() {}
+    FroggerFullState();
     /*Construct state directly using the obviously-required data*/
-    FroggerFullState(std::vector<int> velocities, std::vector<float> positions, int playerLevel) {
-        this->velocities = velocities;
-        this->positions = positions;
-        if (velocities.size() != positions.size()) throw std::invalid_argument("Cannot instantiate FroggerFullState with velocities.size() != positions.size()");
-        numLevels = velocities.size();
-        this->playerLevel = playerLevel;
-    }
+    FroggerFullState(std::vector<int> velocities, std::vector<float> positions, int playerLevel);
 
     /*Construct from an existing state*/
-    FroggerFullState(FroggerState& state) {
-        numLevels = state.getNumLevels();
-        playerLevel = state.getPlayerLevel();
+    FroggerFullState(FroggerState& state);
 
-        for (int i=0;i<numLevels;i++) {
-            velocities.push_back(state.getVelocityAt(i));
-            positions.push_back(state.getPositionAt(i));
-        }
-    }
+    ~FroggerFullState();
 
-    ~FroggerFullState() = default;
+    int getVelocityAt(int level) const;
+    float getPositionAt(int level) const;
+    int getPlayerLevel() const;
+    int getNumLevels() const;
 
-    int getVelocityAt(int level) const {
-        return velocities[level];
-    }
-    float getPositionAt(int level) const {
-        return positions[level] - std::floor(positions[level]);
-    }
-    int getPlayerLevel() const {
-        return playerLevel;
-    }
-    int getNumLevels() const {
-        return numLevels;
-    }
-
-    void incrementalUpdate(float timestep) {
-        for (int i=0;i<getNumLevels();i++) {
-            positions[i] = positions[i]+(velocities[i]*timestep);
-            positions[i] -= std::floor(positions[i]);
-        }
-    }
-
-    bool movePlayer(int to) {
-        if (to >= getNumLevels() || to < 0) return false;
-        playerLevel = to;
-        return true;
-    }
+    void incrementalUpdate(float timestep);
+    bool movePlayer(int to);
 
     private:
 
@@ -197,47 +91,21 @@ class FroggerPartialState : public FroggerState {
     public:
     
     /*Basic constructor using the essential state elements*/
-    FroggerPartialState(FroggerState& initialState, float timeElapsed, int playerLevel) : initialState(initialState) {
-        this->timePassed=timeElapsed;
-        this->playerLevel=playerLevel;
-    }
+    FroggerPartialState(FroggerState& initialState, float timeElapsed, int playerLevel);
 
     /*Constructor from given full state*/
-    FroggerPartialState(FroggerState& initialState, FroggerState& toState) : initialState(initialState) {
-        timePassed=toState.getTimePassed(initialState);
-        playerLevel=toState.getPlayerLevel();
-        this->initialState=initialState;
-        // No solution t for positions0 + velocities*t == positions1 (mod 1).
-        if (timePassed==-1) throw std::invalid_argument("FroggerPartialState constructor unable to solve: toState cannot be reached from initialState.");
-    }
+    FroggerPartialState(FroggerState& initialState, FroggerState& toState);
 
-    ~FroggerPartialState(){}
+    ~FroggerPartialState();
 
-    const FroggerState& getInitialState() const {
-        return initialState;
-    }
+    const FroggerState& getInitialState() const;
     
-    int getVelocityAt(int level) const {
-        return initialState.getVelocityAt(level);
-    }
-    int getPlayerLevel() const {
-        return playerLevel;
-    }
-    float getPositionAt(int level) const {
-        float answer=getInitialState().getPositionAt(level)+getInitialState().getVelocityAt(level)*timePassed;
-        return answer - std::floor(answer);
-    }
-    int getNumLevels() const {
-        return getInitialState().getNumLevels();
-    }
-    void incrementalUpdate(float timestep) {
-        timePassed += timestep;
-    }
-    bool movePlayer(int to) {
-        if (to >= getNumLevels() || to < 0) return false;
-        playerLevel=to;
-        return true;
-    }
+    int getVelocityAt(int level) const;
+    int getPlayerLevel() const;
+    float getPositionAt(int level) const;
+    int getNumLevels() const;
+    void incrementalUpdate(float timestep);
+    bool movePlayer(int to);
 
     private:
     FroggerState& initialState;
