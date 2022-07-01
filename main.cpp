@@ -1,5 +1,11 @@
+#include <QApplication>
+#include <state-machine/FroggerStateMachine.hpp>
+#include <screens/StartScreen.h>
 
-int main(int argc, char const *argv[])
+int main(int argc, char *argv[])
 {
-    return mainloop();
+    QApplication a(argc, argv);
+    StartScreen start;
+    start.show();
+    return a.exec();
 }
