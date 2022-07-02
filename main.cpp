@@ -1,11 +1,14 @@
 #include <QApplication>
 #include <state-machine/FroggerStateMachine.hpp>
-#include <screens/StartScreen.h>
+#include <FroggerWindow.h>
 
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    StartScreen start;
-    start.show();
+    FroggerWindow window;
+    //window.show();
+    //window.startScreen->setInactive();
+    //window.startScreen->setActive();
+    window.show();
     return a.exec();
 }
