@@ -18,7 +18,7 @@ StartScreen::StartScreen(QWidget* parent) : QWidget(parent) {
 
     setObjectName(screenName.c_str());
 
-    //setInactive();
+    setInactive();
 }
 
 StartScreen::~StartScreen() {
@@ -26,7 +26,6 @@ StartScreen::~StartScreen() {
 
 void StartScreen::onStartButtonPressed() {
     emit startButtonPressed();
-    //std::cout << " Clicked start  " << std::endl;
     GameOptionsScreen* gameOptionsScreen = parentWidget()->findChild<GameOptionsScreen*>(gameOptionsScreen->screenName.c_str());
     // Might be able to spruce this up later with some sort of transition
     setInactive();
@@ -35,14 +34,10 @@ void StartScreen::onStartButtonPressed() {
 
 void StartScreen::setInactive() {
     setVisible(false);
-    QList<QWidget*> children = findChildren<QWidget*>();
-    for (auto i : children) i->setVisible(false);
     isActive=false;
 }
 
 void StartScreen::setActive() {
     setVisible(true);
-    QList<QWidget*> children = findChildren<QWidget*>();
-    for (auto i : children) i->setVisible(true);
     isActive=true;
 }
