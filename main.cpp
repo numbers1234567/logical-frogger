@@ -7,8 +7,7 @@ int main(int argc, char *argv[])
     QApplication a(argc, argv);
     FroggerWindow window;
     //window.show();
-    //window.startScreen->setInactive();
-    //window.startScreen->setActive();
+    window.startScreen->setActive();
     window.show();
     return a.exec();
 }
