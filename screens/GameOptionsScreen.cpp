@@ -18,14 +18,7 @@
 const std::string GameOptionsScreen::screenName = "Game Options Screen";
 
 GameOptionsScreen::GameOptionsScreen(QWidget* parent, int numLevels) : QWidget(parent) {
-    std::srand(std::time(0));
-    // Automatically set random map.
-    for (int i=0;i<maxNumLevels;i++) {
-        initialSetting.pos.push_back((std::rand()%127)*1./128);
-        // 5 to 15 or -15 to -5.
-        initialSetting.vel.push_back(((std::rand()%11)+5)*((std::rand()%2)*2 - 1));
-    }
-
+    initRandMap();
     setObjectName(screenName.c_str());
     // GUI elements
     initGUI();
@@ -50,6 +43,21 @@ void GameOptionsScreen::changeNumLevels(int newNumLevels) {
     numLevels=newNumLevels;
 }
 
+void GameOptionsScreen::startGame() {
+    GameSetting levelSettings;
+    // Populate levelSettings velocity and position based on slider positions
+    for (int i=0;i<numLevels;i++) {
+        levelSettings.pos.push_back(guiLevels[i].posSetter->tickPosition()*1./128);
+        levelSettings.vel.push_back(guiLevels[i].velSetter->tickPosition());
+    }
+    setInactive();
+    // Set game screen as active and provide level settings.
+}
+
+void GameOptionsScreen::displayHelp() {
+    // To-do later maybe, but not a priority right now
+}
+
 void GameOptionsScreen::disableLevel(int level) {
     QList<QWidget*> levelGUIElements;
     // Find all GUI elements
@@ -72,6 +80,16 @@ void GameOptionsScreen::activateLevel(int level) {
     for (auto i : levelGUIElements) i->show();
 }
 
+void GameOptionsScreen::initRandMap() {
+    std::srand(std::time(0));
+    // Automatically set random map.
+    for (int i=0;i<maxNumLevels;i++) {
+        initialSetting.pos.push_back((std::rand()%127)*1./128);
+        // 5 to 15 or -15 to -5.
+        initialSetting.vel.push_back(((std::rand()%11)+5)*((std::rand()%2)*2 - 1));
+    }
+}
+
 void GameOptionsScreen::initGUI() {
     setFixedSize(parentWidget()->size());
 
@@ -84,6 +102,7 @@ void GameOptionsScreen::initGUI() {
     title->setText("Game Options");
 
     QPushButton *startGameButton = new QPushButton("Start Game", this);
+    connect(startGameButton, SIGNAL(clicked()), this, SLOT(startGame()));
     QPushButton *helpButton = new QPushButton("Help", this);
 
     topLayout->addWidget(title);

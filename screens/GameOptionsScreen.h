@@ -30,6 +30,9 @@ struct LevelGUIData {
     }
 };
 
+/* Screen which can be used to set specific values for the game.
+    A drag-and-drop type system might be implemented to easily load
+    a custom map from a file. */
 class GameOptionsScreen : public QWidget {
     Q_OBJECT
 public:
@@ -49,6 +52,8 @@ public:
 public slots:
     // On change game setting
     void changeNumLevels(int newNumLevels);
+    void startGame();
+    void displayHelp();
 private:
     struct GameSetting initialSetting;
 
@@ -62,6 +67,7 @@ private:
     void activateLevel(int level);
 
     // innit
+    void initRandMap(); // Initialize game setting randomly
     void initGUI();
     QVBoxLayout* initLevelGUI(int level); // initGUI auxiliary function
 };
