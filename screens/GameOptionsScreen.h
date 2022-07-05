@@ -5,6 +5,7 @@
 #include <QSlider>
 #include <QLabel>
 #include <GameSettings.h>
+#include <QVBoxLayout>
 #include <vector>
 
 // Compiles all GUI information into a single structure.
@@ -13,17 +14,24 @@ struct LevelGUIData {
     QSlider* posSetter;
     QLabel* velDisp;
     QLabel* posDisp;
+    QLabel* levelDisp;
     LevelGUIData(QWidget* parent) {
-        velSetter = new QSlider(parent);
-        posSetter = new QSlider(parent);
+        velSetter = new QSlider(Qt::Horizontal, parent);
+        posSetter = new QSlider(Qt::Horizontal, parent);
         velDisp = new QLabel(parent);
         posDisp = new QLabel(parent);
-        velDisp->setText("test1");
-        posDisp->setText("test2");
+        levelDisp = new QLabel(parent);
+
+        velDisp->setText("vel");
+        posDisp->setText("vel");
+
+        velSetter->connect(velSetter, SIGNAL(valueChanged(int)), velDisp, SLOT(setNum(int)));
+        posSetter->connect(posSetter, SIGNAL(valueChanged(int)), posDisp, SLOT(setNum(int)));
     }
 };
 
 class GameOptionsScreen : public QWidget {
+    Q_OBJECT
 public:
     const static std::string screenName;
 
@@ -31,7 +39,7 @@ public:
     const static int maxNumLevels=100;
     const static int minNumLevels=10;
 
-    explicit GameOptionsScreen(QWidget *parent=0, int numLevels=20);
+    explicit GameOptionsScreen(QWidget *parent=0, int numLevels=50);
 
     // Can set the screen to be invisible or invisible
     void setActive();
@@ -40,15 +48,11 @@ public:
 
 public slots:
     // On change game setting
-    void changeVelocity(int level, int newVelocity);
-    void changePosition(int level, float newPosition);
     void changeNumLevels(int newNumLevels);
 private:
-    struct GameSetting currentSetting;
+    struct GameSetting initialSetting;
 
     // GUI elements
-    QSlider *numLevelsSlider;
-    QLabel *title;
     std::vector<LevelGUIData> guiLevels;
 
     int numLevels;
@@ -59,6 +63,7 @@ private:
 
     // innit
     void initGUI();
+    QVBoxLayout* initLevelGUI(int level); // initGUI auxiliary function
 };
 
 #endif // GAMEOPTIONSSCREEN_H

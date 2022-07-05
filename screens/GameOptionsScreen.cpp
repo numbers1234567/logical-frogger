@@ -6,25 +6,31 @@
 #include <iostream>
 
 #include <QVBoxLayout>
+#include <QGridLayout>
+#include <QFormLayout>
+
+#include <QScrollArea>
+
 #include <QLabel>
 #include <QSpacerItem>
-#include <QGridLayout>
 #include <QPushButton>
-#include <QScrollArea>
 
 const std::string GameOptionsScreen::screenName = "Game Options Screen";
 
 GameOptionsScreen::GameOptionsScreen(QWidget* parent, int numLevels) : QWidget(parent) {
     std::srand(std::time(0));
     // Automatically set random map.
-    for (int i=0;i<numLevels;i++) {
-        currentSetting.pos.push_back(std::rand()*1./RAND_MAX);
-        // 10 to 22 or -22 to -10.
-        currentSetting.vel.push_back(((std::rand()%13)+10)*((std::rand()%2)*2 - 1));
+    for (int i=0;i<maxNumLevels;i++) {
+        initialSetting.pos.push_back((std::rand()%127)*1./128);
+        // 5 to 15 or -15 to -5.
+        initialSetting.vel.push_back(((std::rand()%11)+5)*((std::rand()%2)*2 - 1));
     }
+
     setObjectName(screenName.c_str());
     // GUI elements
     initGUI();
+
+    changeNumLevels(numLevels);
     setInactive();
 }
 
@@ -38,89 +44,107 @@ void GameOptionsScreen::setInactive() {
     isActive=false;
 }
 
-void GameOptionsScreen::changeVelocity(int level, int newVel) {
-    currentSetting.vel[level] = newVel;
-    // set GUI
-    guiLevels[level].posDisp->setText(std::to_string(newVel).c_str());
-}
-
-void GameOptionsScreen::changePosition(int level, float newPos) {
-    // Set GUI and value
-    currentSetting.pos[level] = newPos;
-    std::stringstream newPosStream;
-
-    newPosStream << std::fixed << std::setprecision(5) << newPos;
-    guiLevels[level].posDisp->setText(newPosStream.str().c_str());
-}
-
 void GameOptionsScreen::changeNumLevels(int newNumLevels) {
-    if (newNumLevels < numLevels) {
-        // Disable gui elements
-        for (int i=newNumLevels;i<numLevels;i++)
-            disableLevel(i);
-    }
-    else if (newNumLevels > numLevels) {
-        // Enable gui elements
-        for (int i=numLevels;i<newNumLevels;i++)
-            activateLevel(i);
-    }
+    for (int i=0;i<newNumLevels;i++) activateLevel(i);
+    for (int i=newNumLevels;i<maxNumLevels;i++) disableLevel(i);
     numLevels=newNumLevels;
 }
 
 void GameOptionsScreen::disableLevel(int level) {
     QList<QWidget*> levelGUIElements;
     // Find all GUI elements
-    levelGUIElements.append(guiLevels[level].velSetter->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].posSetter->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].velDisp->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].posDisp->findChildren<QWidget*>());
     levelGUIElements.append(guiLevels[level].velSetter);
     levelGUIElements.append(guiLevels[level].posSetter);
     levelGUIElements.append(guiLevels[level].velDisp);
     levelGUIElements.append(guiLevels[level].posDisp);
-    for (auto i : levelGUIElements) i->setVisible(false);
+    levelGUIElements.append(guiLevels[level].levelDisp);
+    for (auto i : levelGUIElements) i->hide();
 }
 
 void GameOptionsScreen::activateLevel(int level) {
     QList<QWidget*> levelGUIElements;
     // Find all GUI elements
-    levelGUIElements.append(guiLevels[level].velSetter->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].posSetter->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].velDisp->findChildren<QWidget*>());
-    levelGUIElements.append(guiLevels[level].posDisp->findChildren<QWidget*>());
     levelGUIElements.append(guiLevels[level].velSetter);
     levelGUIElements.append(guiLevels[level].posSetter);
     levelGUIElements.append(guiLevels[level].velDisp);
     levelGUIElements.append(guiLevels[level].posDisp);
-    for (auto i : levelGUIElements) i->setVisible(true);
+    levelGUIElements.append(guiLevels[level].levelDisp);
+    for (auto i : levelGUIElements) i->show();
 }
 
 void GameOptionsScreen::initGUI() {
     setFixedSize(parentWidget()->size());
 
-    QScrollArea *scrollArea = new QScrollArea(this);
-    scrollArea->setFixedSize(size());
-
-    QWidget* wholeContainer = new QWidget(scrollArea);
-
+    // Main layout
     QVBoxLayout *mainLayout = new QVBoxLayout;
+    // Top layout
+    QHBoxLayout *topLayout = new QHBoxLayout;
+
     QLabel *title = new  QLabel(this);
     title->setText("Game Options");
 
-    QGridLayout *optionsLayout = new QGridLayout;
+    QPushButton *startGameButton = new QPushButton("Start Game", this);
+    QPushButton *helpButton = new QPushButton("Help", this);
 
-    /*for (int i=0;i<maxNumLevels;i++) {
-        struct LevelGUIData levelGUI(wholeContainer);
-        optionsLayout->addWidget(levelGUI.velSetter, 2*i, 0, 1, 1);
-        optionsLayout->addWidget(levelGUI.posSetter, 2*i+1, 0, 1, 1);
-        optionsLayout->addWidget(levelGUI.velDisp, 2*i, 1, 1, 1);
-        optionsLayout->addWidget(levelGUI.posDisp, 2*i+1, 1, 1, 1);
-        guiLevels.push_back(levelGUI);
-    }*/
+    topLayout->addWidget(title);
+    topLayout->addWidget(startGameButton);
+    topLayout->addWidget(helpButton);
+    // Top layout end
+    // numLevels
+    QSlider *numLevelsSetter = new QSlider(Qt::Horizontal, this);
+    numLevelsSetter->setMinimum(minNumLevels);
+    numLevelsSetter->setMaximum(maxNumLevels);
+    connect(numLevelsSetter, SIGNAL(valueChanged(int)), this, SLOT(changeNumLevels(int)));
+    // Scroll area
+    QScrollArea *scrollArea = new QScrollArea(this);
+    scrollArea->setWidgetResizable(true);
+    // Options container
+    QWidget* optionsContainer = new QWidget(this);
 
-    mainLayout->addWidget(title);
-    mainLayout->addLayout(optionsLayout);
+    QGridLayout *optionsLayout = new QGridLayout(optionsContainer);
 
-    wholeContainer->setLayout(mainLayout);
-    scrollArea->setWidget(wholeContainer);
+    // Set up input grid
+    for (int i=0;i<maxNumLevels;i++) {
+        int baseRow=(i/2)*2;
+        int baseCol=(i%2)*2;
+
+        optionsLayout->addLayout(initLevelGUI(i), baseRow, baseCol);
+    }
+    optionsContainer->setLayout(optionsLayout);
+    // End options Container
+    scrollArea->setWidget(optionsContainer);
+    // End scroll area
+    mainLayout->addLayout(topLayout);
+    mainLayout->addWidget(numLevelsSetter);
+    mainLayout->addWidget(scrollArea);
+    // end mainLayout
+    setLayout(mainLayout);
+}
+
+QVBoxLayout *GameOptionsScreen::initLevelGUI(int level) {
+    LevelGUIData levelGUI(this);
+    guiLevels.push_back(levelGUI);
+
+    // Layout
+    QVBoxLayout *levelGUILayout = new QVBoxLayout;
+
+    levelGUI.levelDisp->setText(("Level " + std::to_string(level)).c_str());
+    levelGUILayout->addWidget(levelGUI.levelDisp);
+
+    QFormLayout *inputLayout = new QFormLayout;
+    inputLayout->addRow(levelGUI.velDisp, levelGUI.velSetter);
+    inputLayout->addRow(levelGUI.posDisp, levelGUI.posSetter);
+
+    levelGUILayout->addLayout(inputLayout);
+
+    // Setters
+    levelGUI.posSetter->setMinimum(0);
+    levelGUI.posSetter->setMaximum(127);
+    levelGUI.posSetter->setValue((int)(initialSetting.pos[level]*128));
+
+    levelGUI.velSetter->setMinimum(-15);
+    levelGUI.velSetter->setMaximum(15);
+    levelGUI.velSetter->setValue(initialSetting.vel[level]);
+
+    return levelGUILayout;
 }
